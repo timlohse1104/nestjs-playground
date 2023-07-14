@@ -11,12 +11,11 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      // expandVariables: true,
-      envFilePath: '.env',
+      expandVariables: true,
       isGlobal: true,
     }),
   ],
   controllers: [AppController],
   providers: [Logger, AppService],
 })
-export class ChatServerModule {}
+export class AppModule {}

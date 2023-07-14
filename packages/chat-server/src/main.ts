@@ -1,12 +1,15 @@
-import { INestApplication, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-
-import { ChatServerModule } from './app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import { AppModule } from './app/app.module';
 
 class ChatServer {
-  private app?: INestApplication;
+  private app?: NestFastifyApplication;
   private serverPort?: string;
   private serverAddress?: string;
   private globalPrefix?: string;
@@ -28,7 +31,10 @@ class ChatServer {
    * @private
    */
   private async setupApplication() {
-    this.app = await NestFactory.create(ChatServerModule);
+    this.app = await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      new FastifyAdapter()
+    );
     this.app.setGlobalPrefix(this.globalPrefix);
     this.app.useLogger(['error', 'warn', 'log', 'debug']);
     this.app.enableCors();
@@ -52,12 +58,7 @@ class ChatServer {
    * @private
    */
   private getConfigString(name: string): string {
-    const configService = this.app.get(ConfigService);
-    const value = configService.get<string>(name);
-
-    console.log(`${name}`, value);
-    console.log(`${name}`, typeof value);
-    console.log(`process ${name}`, process.env.SERVER_PORT);
+    const value = this.app.get(ConfigService).get(name);
 
     if (typeof value === 'string') {
       return value;
