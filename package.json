@@ -16,6 +16,8 @@
     "@nestjs/websockets": "^10.0.4",
     "@nrwl/nest": "^16.4.0",
     "axios": "^1.0.0",
+    "nestjs-pino": "^3.3.0",
+    "pino-http": "^8.3.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0"
@@ -41,6 +43,7 @@
     "jest-environment-node": "^29.4.1",
     "nx": "16.4.0",
     "nx-cloud": "latest",
+    "pino-pretty": "^10.0.1",
     "prettier": "^2.6.2",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",

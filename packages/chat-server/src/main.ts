@@ -7,6 +7,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { AppModule } from './app/app.module';
+import { Logger as PinoLogger } from 'nestjs-pino';
 
 class ChatServer {
   private app?: NestFastifyApplication;
@@ -35,9 +36,10 @@ class ChatServer {
       AppModule,
       new FastifyAdapter()
     );
+    this.app.useLogger(this.app.get(PinoLogger));
     this.app.setGlobalPrefix(this.globalPrefix);
-    this.app.useLogger(['error', 'warn', 'log', 'debug']);
     this.app.enableCors();
+    this.app.useGlobalPipes();
   }
 
   /**
@@ -46,9 +48,9 @@ class ChatServer {
    * @private
    */
   private configureApplication() {
-    this.serverPort = this.getConfigString('SERVER_PORT');
-    this.serverAddress = this.getConfigString('SERVER_ADDRESS');
-    this.globalPrefix = this.getConfigString('SERVER_GLOBAL_PREFIX');
+    this.serverPort = this.getConfigString('CHAT_SERVER_PORT');
+    this.serverAddress = this.getConfigString('CHAT_SERVER_ADDRESS');
+    this.globalPrefix = this.getConfigString('CHAT_SERVER_GLOBAL_PREFIX');
   }
 
   /**
