@@ -5,12 +5,15 @@
     const socket = io('http://localhost:3000');
 
     let messages = [];
-    const username = 'Tim';
+    let joined = false;
+    let username = '';
     let newMessage = '';
     let chatSection;
+    let typingDisplay = '';
 
     // Svelte lifecycle hooks
     onMount(() => {
+        // Establish websocket connection
         socket.on('connect', () => {
             console.log(`Established websocket connection to ${socket.io.opts.hostname}:${socket.io.opts.port}.`);
             socket.emit('findAllMessages', {}, (response) => {
@@ -24,24 +27,64 @@
                 })];
             });
         });
+
+        // Subscribe to new messages
+        socket.on('message', message => {
+            messages = [...messages, {
+                ...message,
+                timestamp: new Date(message.timestamp).toLocaleString()
+            }];
+        })
+        
+        // Subscribe to typing events
+        socket.on('typing', ({name, isTyping}) => {
+            if (isTyping) {
+                typingDisplay = `${name} schreibt...`;
+            } else {
+                typingDisplay = '';
+            }
+        })
     }) 
 
     afterUpdate(() => {
         // Auto scroll to bottom for latest messages
-        chatSection.scrollTop = chatSection.scrollHeight;
+        if (chatSection) chatSection.scrollTop = chatSection?.scrollHeight;
     });
 
     // Custom functions
+
+    const join = () => {
+        // Join chat room
+        socket.emit('join', {
+            name: username
+        }, (allNames) => {
+            console.log('Identified names for this client: ', allNames);
+            joined = true;
+        });
+    }
+
+    let typingTimeout
+    const emitTyping = () => {
+        // Broadcast typing status to other users
+        socket.emit('typing', {
+            isTyping: true
+        });
+        // Automatically reset typing status after 2 seconds
+        typingTimeout = setTimeout(() => {
+            socket.emit('typing', {
+                isTyping: false
+            });
+        }, 2000);
+    }
+
     const sendMessage = () => {
+        // Send message to server
         socket.emit('createMessage', {
             name: username,
             text: newMessage
-        }, (response) => {
-            console.log(response);
-            messages = [...messages, {
-                ...response,
-                timestamp: new Date(response.timestamp).toLocaleString()
-            }];
+        }, (createdMessage) => {
+            console.log('Created message: ', createdMessage);
+            newMessage = '';
         });
     }
 </script>
@@ -60,40 +103,58 @@
         </div>
     </section>
 
-    <section class="chat-section" bind:this={chatSection}>
-        {#each messages as message}
-            <div class="message-container">
-                <article class="message {message?.name === username? 'is-info': 'is-success' } {message?.name === username ? 'message-left' : 'message-right'}">
-                    <div class="message-header">
-                        <p>{message?.name} | {message?.timestamp}</p>
-                    </div>
-                    <div class="message-body">
-                        {message?.text}
-                    </div>
-                </article>
-            </div>
-        {/each}
-    </section>
-
-    <section class="hero-foot">
-        <footer class="section is-small">
-            <form on:submit|preventDefault={(e) => {
-                    sendMessage();
-                    newMessage = '';
-                }}>
+    {#if !joined}
+        <section class="hero-body">
+            <div class="container">
                 <div class="field has-addons">
                     <div class="control is-expanded">
-                        <input bind:value={newMessage} class="input" name="userInput" type="text" placeholder="Schreibe deine Nachricht" />
+                        <input bind:value={username} class="input" type="text" placeholder="Dein Name" />
                     </div>
                     <div class="control">
-                        <button class="button is-info">
-                            Senden
+                        <button class="button is-info" on:click={join}>
+                            Beitreten
                         </button>
                     </div>
                 </div>
-            </form>
-        </footer>
-    </section>
+            </div>
+        </section>
+    {:else}
+        <section class="chat-section" bind:this={chatSection}>
+            {#each messages as message}
+                <div class="message-container">
+                    <article class="message {message?.name === username? 'is-info': 'is-success' } {message?.name === username ? 'message-left' : 'message-right'}">
+                        <div class="message-header">
+                            <p>{message?.name} | {message?.timestamp}</p>
+                        </div>
+                        <div class="message-body">
+                            {message?.text}
+                        </div>
+                    </article>
+                </div>
+            {/each}
+        </section>
+
+        <section class="hero-foot">
+            <footer class="section is-small">
+
+                {#if typingDisplay}
+                    <p class="is-size-7">{typingDisplay}</p>
+                {/if}
+                <form on:submit|preventDefault={sendMessage}>
+                    <div class="field has-addons">
+                        <div class="control is-expanded">
+                            <input on:input={emitTyping} bind:value={newMessage} class="input" name="userInput" type="text" placeholder="Schreibe deine Nachricht" />
+                        </div>
+                        <div class="control">
+                            <button class="button is-info">
+                                Senden
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </footer>
+        </section>
+    {/if}
 </main>
 
 <style>
