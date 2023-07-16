@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { MessagesModule } from '../messages/messages.module';
 
 /**
  * The application module of chat-server application.
@@ -41,6 +42,7 @@ import { LoggerModule } from 'nestjs-pino';
       },
       inject: [ConfigService],
     }),
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

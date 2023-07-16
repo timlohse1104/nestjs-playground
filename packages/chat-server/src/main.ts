@@ -48,9 +48,9 @@ class ChatServer {
    * @private
    */
   private configureApplication() {
-    this.serverPort = this.getConfigString('CHAT_SERVER_PORT');
-    this.serverAddress = this.getConfigString('CHAT_SERVER_ADDRESS');
-    this.globalPrefix = this.getConfigString('CHAT_SERVER_GLOBAL_PREFIX');
+    this.serverPort = this.getConfigString('SERVER_PORT');
+    this.serverAddress = this.getConfigString('SERVER_ADDRESS');
+    this.globalPrefix = this.getConfigString('SERVER_GLOBAL_PREFIX');
   }
 
   /**
