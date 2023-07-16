@@ -6,7 +6,14 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 @Injectable()
 export class MessagesService {
   // In-memory database
-  messages: Message[] = [{ name: 'Tim', text: 'Moin', timestamp: new Date() }];
+  messages: Message[] = [
+    { name: 'Tim', text: 'Moin', timestamp: new Date() },
+    {
+      name: 'Laura',
+      text: "Na, wie geht's?",
+      timestamp: new Date(Date.now() + 5000),
+    },
+  ];
   clientToUser: Record<string, string> = {};
 
   constructor(
